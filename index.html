@@ -3,206 +3,234 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pose Match – MediaPipe (Face + Hand)</title>
+  <title>Pose Match – Manga Style!</title>
   <style>
     :root {
-      --bg: #0b1120;
-      --panel: #0f172a;
-      --border: rgba(148, 163, 184, 0.35);
-      --accent: #22c55e;
-      --muted: #94a3b8;
-      --text: #e2e8f0;
+      --bg: #fff5f7;
+      --panel: #ffffff;
+      --border: rgba(255, 182, 193, 0.4);
+      --accent: #ff6b9d;
+      --accent-bright: #ff8fab;
+      --muted: #ffb3c6;
+      --text: #2d1b3d;
+      --success: #ff6b9d;
+      --warning: #ffd93d;
+      --shadow: rgba(255, 107, 157, 0.2);
+      --manga-pink: #ffb3d9;
+      --manga-purple: #c77dff;
     }
-    * { box-sizing: border-box; }
+    * { 
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #1f2937, #0b1120 55%, #020617 100%);
+      font-family: 'Comic Sans MS', 'Marker Felt', 'Arial Rounded MT Bold', sans-serif;
+      background: linear-gradient(135deg, #ffeef5 0%, #fff5f7 50%, #ffeef5 100%);
       color: var(--text);
-      display: flex;
-      justify-content: center;
-      align-items: stretch;
-      padding: 24px;
+      padding: 12px;
     }
     .shell {
       width: 100%;
-      max-width: 1200px;
-      background: linear-gradient(145deg, #0b1224, #090f1e);
-      border: 1px solid var(--border);
-      border-radius: 26px;
-      padding: 20px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      max-width: 1400px;
+      margin: 0 auto;
+      background: var(--panel);
+      border: 3px solid var(--accent);
+      border-radius: 24px;
+      padding: 16px;
+      box-shadow: 0 8px 32px var(--shadow), 0 0 0 2px var(--manga-pink);
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
       position: relative;
       overflow: hidden;
+    }
+    .shell::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--manga-pink), var(--manga-purple), var(--accent));
+      z-index: 1;
     }
     .header {
       display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .pill {
-      padding: 4px 10px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      color: var(--muted);
-      font-size: 0.8rem;
-      display: inline-flex;
-      align-items: center;
+      flex-direction: column;
       gap: 8px;
     }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #fbbf24; box-shadow: 0 0 10px rgba(234,179,8,0.9); }
-    .pill.ready .dot { background: var(--accent); box-shadow: 0 0 10px rgba(34,197,94,0.9); }
-    .pill strong { color: var(--text); }
-    .subtitle { color: var(--muted); max-width: 640px; }
-    .layout { display: grid; grid-template-columns: 1.05fr 1.5fr; gap: 16px; }
-    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } body { padding: 14px; } }
+    .title {
+      font-size: clamp(1.2rem, 4vw, 1.8rem);
+      font-weight: 900;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      color: var(--accent);
+      text-shadow: 2px 2px 0px var(--manga-pink);
+    }
+    .pill {
+      padding: 6px 12px;
+      border: 2px solid var(--accent);
+      border-radius: 20px;
+      color: var(--text);
+      font-size: clamp(0.7rem, 2.5vw, 0.85rem);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--manga-pink);
+      font-weight: 700;
+    }
+    .dot { 
+      width: 10px; 
+      height: 10px; 
+      border-radius: 50%; 
+      background: var(--warning); 
+      box-shadow: 0 0 8px var(--warning);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.8; }
+    }
+    .pill.ready .dot { 
+      background: var(--success); 
+      box-shadow: 0 0 8px var(--success);
+      animation: none;
+    }
+    .subtitle { 
+      color: var(--text);
+      font-size: clamp(0.75rem, 2.5vw, 0.9rem);
+      opacity: 0.8;
+      line-height: 1.4;
+    }
+    .layout { 
+      display: grid; 
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 768px) {
+      .layout { 
+        grid-template-columns: 1fr 1fr; 
+        gap: 16px;
+      }
+      body { padding: 20px; }
+      .shell { padding: 20px; gap: 16px; }
+    }
     .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 14px;
+      background: linear-gradient(145deg, #ffffff, #fff5f7);
+      border: 3px solid var(--accent);
+      border-radius: 20px;
+      padding: 12px;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 4px 16px var(--shadow);
+    }
+    @media (min-width: 768px) {
+      .panel { padding: 16px; }
     }
     .panel h3 {
-      margin: 0 0 10px;
-      font-size: 0.9rem;
-      letter-spacing: 0.12em;
+      margin: 0 0 12px;
+      font-size: clamp(0.85rem, 3vw, 1rem);
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: var(--accent);
+      font-weight: 900;
+      text-shadow: 1px 1px 0px var(--manga-pink);
     }
-    .ref-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 10px;
-    }
-    @media (max-width: 600px) { .ref-grid { grid-template-columns: 1fr; } }
-    .card {
-      border: 1px solid rgba(148,163,184,0.4);
-      border-radius: 12px;
-      background: #0b1223;
-      overflow: hidden;
-      transition: 0.2s ease;
+    .main-image-container {
       position: relative;
-    }
-    .card img {
-      display: block;
-      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
       aspect-ratio: 4/3;
+      background: linear-gradient(135deg, var(--manga-pink), var(--manga-purple));
+      border: 3px solid var(--accent);
+      box-shadow: 0 6px 20px var(--shadow);
+    }
+    .main-image-container img {
+      width: 100%;
+      height: 100%;
       object-fit: cover;
-      transition: opacity 0.25s ease, transform 0.25s ease, filter 0.25s ease;
+      display: block;
+      transition: transform 0.3s ease, filter 0.3s ease;
     }
-    .card.locked img {
-      opacity: 0;
-      transform: scale(1.02);
-      filter: blur(6px) brightness(0.3);
+    .main-image-container.locked img {
+      filter: blur(8px) brightness(0.4) grayscale(1);
+      transform: scale(1.05);
     }
-    .card .meta {
-      padding: 8px 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      color: var(--text);
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-    .tag {
-      border: 1px solid rgba(148,163,184,0.5);
-      border-radius: 999px;
-      padding: 2px 8px;
-      font-size: 0.7rem;
-      color: var(--muted);
-    }
-    .check {
-      font-size: 0.9rem;
-      color: #4ade80;
-      opacity: 0;
-      transform: translateY(4px);
-      transition: opacity 0.2s ease, transform 0.2s ease;
-    }
-    .card.active {
-      border-color: var(--accent);
-      box-shadow: 0 10px 30px rgba(34,197,94,0.25);
-      transform: translateY(-2px);
-    }
-    .card.unlocked .check {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .card-overlay {
+    .main-image-overlay {
       position: absolute;
       inset: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 6px;
-      padding: 10px;
-      background: radial-gradient(circle at top, rgba(15,23,42,0.95), rgba(15,23,42,0.98));
-      color: var(--muted);
+      gap: 12px;
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(255, 179, 217, 0.95), rgba(199, 125, 255, 0.95));
+      color: var(--text);
       text-align: center;
-      font-size: 0.78rem;
-      transition: opacity 0.25s ease;
+      font-weight: 700;
       z-index: 2;
     }
-    .card-overlay .icon {
-      font-size: 1.6rem;
-    }
-    .card-overlay .lock-state {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      border-radius: 999px;
-      border: 1px solid rgba(148,163,184,0.5);
-      padding: 2px 8px;
-      margin-top: 2px;
-    }
-    .card.unlocked .card-overlay {
+    .main-image-overlay.hidden {
       opacity: 0;
       pointer-events: none;
+      transition: opacity 0.4s ease;
     }
-    .card.unlocked .check {
+    .main-image-overlay .icon {
+      font-size: clamp(3rem, 10vw, 5rem);
+      filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
+    }
+    .main-image-overlay .hint-text {
+      font-size: clamp(0.9rem, 3vw, 1.1rem);
+      line-height: 1.5;
+      max-width: 300px;
+    }
+    .main-image-overlay .lock-badge {
+      font-size: clamp(0.7rem, 2vw, 0.85rem);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      border: 2px solid var(--accent);
+      border-radius: 20px;
+      padding: 6px 14px;
+      background: var(--panel);
+      font-weight: 900;
+    }
+    .image-title {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 2px solid var(--accent);
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: clamp(0.85rem, 2.5vw, 1rem);
+      color: var(--text);
+      backdrop-filter: blur(10px);
+      text-align: center;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+    }
+    .image-title.visible {
       opacity: 1;
       transform: translateY(0);
     }
-    .metrics {
-      margin-top: 12px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
-      gap: 8px;
-      font-size: 0.78rem;
-    }
-    .metric {
-      border: 1px solid rgba(148,163,184,0.35);
-      border-radius: 999px;
-      padding: 6px 10px;
-      display: flex;
-      justify-content: space-between;
-      color: var(--muted);
-      background: rgba(15,23,42,0.7);
-    }
-    .metric.good { color: #4ade80; }
-    .metric.bad { color: #fca5a5; }
     .video-wrap {
       position: relative;
       border-radius: 16px;
       overflow: hidden;
-      border: 1px solid rgba(148,163,184,0.35);
+      border: 3px solid var(--accent);
       aspect-ratio: 4 / 3;
       background: #000;
-      transform: scaleX(-1); /* mirror video + overlay for natural feel */
+      transform: scaleX(-1);
+      box-shadow: 0 6px 20px var(--shadow);
     }
     video, canvas {
       position: absolute;
@@ -216,44 +244,115 @@
       position: absolute;
       left: 12px;
       bottom: 12px;
-      padding: 8px 12px;
-      background: rgba(15,23,42,0.9);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      color: var(--muted);
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 2px solid var(--accent);
+      border-radius: 20px;
+      color: var(--text);
       display: inline-flex;
       gap: 8px;
       align-items: center;
       opacity: 0;
-      transform: translateY(8px);
-      transition: 0.2s ease;
-      backdrop-filter: blur(12px);
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      font-weight: 700;
+      font-size: clamp(0.75rem, 2.5vw, 0.9rem);
+      box-shadow: 0 4px 12px var(--shadow);
     }
-    .pose-label.visible { opacity: 1; transform: translateY(0); }
-    .pose-label.active { border-color: var(--accent); color: #d1fae5; }
+    .pose-label.visible { 
+      opacity: 1; 
+      transform: translateY(0);
+      animation: bounce 0.5s ease;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+    .pose-label.active { 
+      border-color: var(--success);
+      background: var(--manga-pink);
+      color: var(--text);
+    }
+    .notification {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.98);
+      border: 2px solid var(--accent);
+      border-radius: 20px;
+      color: var(--text);
+      font-weight: 700;
+      font-size: clamp(0.8rem, 2.5vw, 0.95rem);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 16px var(--shadow);
+      z-index: 10;
+      white-space: nowrap;
+    }
+    .notification.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      animation: wiggle 0.5s ease;
+    }
+    @keyframes wiggle {
+      0%, 100% { transform: translateX(-50%) rotate(0deg); }
+      25% { transform: translateX(-50%) rotate(-3deg); }
+      75% { transform: translateX(-50%) rotate(3deg); }
+    }
     .error {
       position: absolute;
       inset: 0;
-      background: rgba(15,23,42,0.95);
+      background: rgba(255, 255, 255, 0.95);
       display: none;
       align-items: center;
       justify-content: center;
       padding: 16px;
       text-align: center;
-      color: #fca5a5;
-      font-weight: 600;
+      color: var(--accent);
+      font-weight: 700;
+      border-radius: 16px;
     }
     .hint {
       position: absolute;
       right: 10px;
       bottom: 10px;
-      font-size: 0.75rem;
-      color: var(--muted);
-      background: rgba(15,23,42,0.85);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 5px 10px;
+      font-size: clamp(0.65rem, 2vw, 0.75rem);
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid var(--accent);
+      border-radius: 16px;
+      padding: 6px 10px;
       backdrop-filter: blur(10px);
+      font-weight: 700;
+    }
+    .metrics {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 8px;
+      font-size: clamp(0.7rem, 2vw, 0.8rem);
+    }
+    .metric {
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      color: var(--text);
+      background: linear-gradient(135deg, #fff, #fff5f7);
+      font-weight: 700;
+    }
+    .metric.good { 
+      border-color: var(--success);
+      background: linear-gradient(135deg, var(--manga-pink), #ffeef5);
+    }
+    .metric.bad { 
+      border-color: var(--warning);
     }
   </style>
 </head>
@@ -261,83 +360,39 @@
   <main class="shell">
     <div class="header">
       <div>
-        <div class="title">Pose Match <span class="pill ready" id="status-pill"><span class="dot"></span><span id="status-text"><strong>Initializing</strong> • allow camera</span></span></div>
-        <div class="subtitle">Mimic the reference poses. MediaPipe FaceLandmarker + GestureRecognizer run in real-time. Press Space to pause/resume.</div>
+        <div class="title">🎌 Pose Match <span class="pill ready" id="status-pill"><span class="dot"></span><span id="status-text"><strong>Initializing</strong> • allow camera</span></span></div>
+        <div class="subtitle">Mimic the poses to unlock cute animals! Press Space to pause/resume.</div>
       </div>
     </div>
 
     <div class="layout">
       <section class="panel">
-        <h3>Reference</h3>
-        <div class="ref-grid">
-          <article class="card locked" data-pose="peace">
-            <div class="card-overlay">
-              <div class="icon">✌️</div>
-              <div class="hint">Show a clear peace / victory sign with your hand to reveal this hamster.</div>
-              <div class="lock-state">Locked</div>
-            </div>
-            <img src="hamster_peace.jpg" alt="Hamster peace sign">
-            <div class="meta">
-              <span>Peace Sign</span>
-              <span class="tag">Gesture</span>
-              <span class="check">✔</span>
-            </div>
-          </article>
-          <article class="card locked" data-pose="scared">
-            <div class="card-overlay">
-              <div class="icon">😱</div>
-              <div class="hint">Open your mouth very wide to unlock the scared hamster.</div>
-              <div class="lock-state">Locked</div>
-            </div>
-            <img src="hamster_scared.jpg" alt="Hamster scared">
-            <div class="meta">
-              <span>Scared</span>
-              <span class="tag">Mouth</span>
-              <span class="check">✔</span>
-            </div>
-          </article>
-          <article class="card locked" data-pose="tongue">
-            <div class="card-overlay">
-              <div class="icon">😛</div>
-              <div class="hint">Open your mouth a bit and close your eyes to reveal the tongue-out cat.</div>
-              <div class="lock-state">Locked</div>
-            </div>
-            <img src="cat_tongue.jpg" alt="Cat tongue out">
-            <div class="meta">
-              <span>Tongue Out</span>
-              <span class="tag">Mouth + Eyes</span>
-              <span class="check">✔</span>
-            </div>
-          </article>
-          <article class="card locked" data-pose="big_eyes">
-            <div class="card-overlay">
-              <div class="icon">👀</div>
-              <div class="hint">Open your eyes extra wide (surprised look) to reveal the big-eyes cat.</div>
-              <div class="lock-state">Locked</div>
-            </div>
-            <img src="cat_eyes.jpg" alt="Cat big eyes">
-            <div class="meta">
-              <span>Big Eyes</span>
-              <span class="tag">Eyes</span>
-              <span class="check">✔</span>
-            </div>
-          </article>
+        <h3>📸 Live Camera</h3>
+        <div class="video-wrap">
+          <video id="video" autoplay playsinline muted></video>
+          <canvas id="overlay"></canvas>
+          <div class="notification" id="notification"></div>
+          <div class="pose-label" id="pose-label"><span id="pose-label-text">Looking for pose…</span></div>
+          <div class="error" id="error-box">Camera or model error. Check permissions or reload.</div>
+          <div class="hint">Space — Pause/Resume</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>🎯 Unlock Target</h3>
+        <div class="main-image-container locked" id="main-image-container">
+          <div class="main-image-overlay" id="main-overlay">
+            <div class="icon" id="overlay-icon">🔒</div>
+            <div class="hint-text" id="overlay-hint">Make a pose to unlock!</div>
+            <div class="lock-badge">Locked</div>
+          </div>
+          <img id="main-image" src="" alt="Unlock target">
+          <div class="image-title" id="image-title"></div>
         </div>
         <div class="metrics">
           <div class="metric" id="metric-mar"><span>MAR</span><span class="value">–</span></div>
           <div class="metric" id="metric-ear"><span>EAR</span><span class="value">–</span></div>
           <div class="metric" id="metric-gesture"><span>HAND</span><span class="value">–</span></div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h3>Live Camera</h3>
-        <div class="video-wrap">
-          <video id="video" autoplay playsinline muted></video>
-          <canvas id="overlay"></canvas>
-          <div class="pose-label" id="pose-label"><span id="pose-label-text">Looking for pose…</span></div>
-          <div class="error" id="error-box">Camera or model error. Check permissions or reload.</div>
-          <div class="hint">Space — Pause/Resume</div>
         </div>
       </section>
     </div>
@@ -346,10 +401,49 @@
   <script type="module">
     import { FaceLandmarker, FilesetResolver, DrawingUtils, GestureRecognizer } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
 
+    // Pose data structure
+    const poses = [
+      {
+        id: "peace",
+        image: "hamster_peace.jpg",
+        title: "Peace Sign",
+        icon: "✌️",
+        hint: "Lift 2 fingers",
+        notification: "Try lifting 2 fingers!",
+        sound: "success"
+      },
+      {
+        id: "scared",
+        image: "hamster_scared.jpg",
+        title: "Scared Face",
+        icon: "😱",
+        hint: "Open mouth wide",
+        notification: "Make a scared face!",
+        sound: "success"
+      },
+      {
+        id: "tongue",
+        image: "cat_tongue.jpg",
+        title: "Tongue Out",
+        icon: "😛",
+        hint: "Stick out your tongue",
+        notification: "Stick out your tongue!",
+        sound: "success"
+      },
+      {
+        id: "big_eyes",
+        image: "cat_eyes.jpg",
+        title: "Big Eyes",
+        icon: "👀",
+        hint: "Open eyes wide",
+        notification: "Open your eyes wide!",
+        sound: "success"
+      }
+    ];
+
     const video = document.getElementById("video");
     const overlay = document.getElementById("overlay");
     const ctx = overlay.getContext("2d");
-    const cards = [...document.querySelectorAll(".card")];
     const poseLabel = document.getElementById("pose-label");
     const poseLabelText = document.getElementById("pose-label-text");
     const statusPill = document.getElementById("status-pill");
@@ -358,25 +452,83 @@
     const metricMAR = document.getElementById("metric-mar");
     const metricEAR = document.getElementById("metric-ear");
     const metricGesture = document.getElementById("metric-gesture");
+    const mainImageContainer = document.getElementById("main-image-container");
+    const mainImage = document.getElementById("main-image");
+    const mainOverlay = document.getElementById("main-overlay");
+    const overlayIcon = document.getElementById("overlay-icon");
+    const overlayHint = document.getElementById("overlay-hint");
+    const imageTitle = document.getElementById("image-title");
+    const notification = document.getElementById("notification");
 
     let faceLandmarker, gestureRecognizer;
     let running = true;
     let rafId = null;
     let lastVideoTime = -1;
-    const unlockedPoses = new Set();
+    let currentPoseIndex = 0;
+    let lastUnlockedPose = null;
+    let lastNotificationTime = 0;
+    let notificationCooldown = 3000; // 3 seconds between notifications
 
     const MAR_SCARED = 0.65;
-    const MAR_TONGUE_MIN = 0.32;
-    const MAR_TONGUE_MAX = 0.6;
+    const MAR_TONGUE_MIN = 0.35;
+    const MAR_TONGUE_MAX = 0.65;
     const EAR_BIG_EYES = 0.33;
     const EAR_EYES_CLOSED = 0.2;
+
+    // Sound effects using Web Audio API
+    function playSound(type) {
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        if (type === "success") {
+          // Happy chime sound
+          oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+          oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+          oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+          oscillator.type = "sine";
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.4);
+        } else if (type === "notification") {
+          // Short beep
+          oscillator.frequency.value = 800;
+          oscillator.type = "sine";
+          gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.15);
+        }
+      } catch (e) {
+        console.log("Sound not available:", e);
+      }
+    }
+
+    function showNotification(text) {
+      const now = Date.now();
+      if (now - lastNotificationTime < notificationCooldown) return;
+      lastNotificationTime = now;
+      
+      notification.textContent = text;
+      notification.classList.add("show");
+      playSound("notification");
+      
+      setTimeout(() => {
+        notification.classList.remove("show");
+      }, 2000);
+    }
 
     function setStatus(text, ready = false) {
       statusText.innerHTML = text;
       statusPill.classList.toggle("ready", ready);
       const dot = statusPill.querySelector(".dot");
-      dot.style.background = ready ? "#22c55e" : "#fbbf24";
-      dot.style.boxShadow = ready ? "0 0 10px rgba(34,197,94,0.9)" : "0 0 10px rgba(234,179,8,0.9)";
+      dot.style.background = ready ? "#ff6b9d" : "#ffd93d";
+      dot.style.boxShadow = ready ? "0 0 8px #ff6b9d" : "0 0 8px #ffd93d";
     }
 
     function distance(a, b) {
@@ -402,6 +554,36 @@
       return (earL + earR) / 2;
     }
 
+    // Detect if tongue is out by checking inner mouth landmarks
+    function detectTongue(landmarks) {
+      // Inner mouth landmarks: 12, 15 (top/bottom inner), 78, 308 (left/right inner)
+      // If mouth is open and inner mouth points are visible/extended, tongue might be out
+      const innerTop = landmarks[12];
+      const innerBottom = landmarks[15];
+      const innerLeft = landmarks[78];
+      const innerRight = landmarks[308];
+      
+      if (!innerTop || !innerBottom || !innerLeft || !innerRight) return false;
+      
+      // Check vertical distance of inner mouth (if it's large, mouth is open)
+      const innerVertical = distance(innerTop, innerBottom);
+      const innerHorizontal = distance(innerLeft, innerRight);
+      
+      // If inner mouth is open significantly, likely tongue is out
+      // Also check if bottom inner point is lower than outer bottom lip
+      const outerBottom = landmarks[14];
+      if (outerBottom && innerBottom.y > outerBottom.y + 0.02) {
+        return true; // Inner mouth extends below outer lip
+      }
+      
+      // Alternative: check if inner mouth ratio suggests tongue
+      if (innerHorizontal > 0 && innerVertical / innerHorizontal > 0.4) {
+        return true;
+      }
+      
+      return false;
+    }
+
     function updateMetric(el, value, { goodRange, badRange } = {}) {
       const v = el.querySelector(".value");
       v.textContent = value == null ? "–" : value.toFixed(3);
@@ -415,52 +597,84 @@
       const v = metricGesture.querySelector(".value");
       v.textContent = text || "–";
       metricGesture.classList.remove("good", "bad");
-      if (text === "Peace/Victory") metricGesture.classList.add("good");
+      if (text === "Peace/Victory" || text === "Victory") metricGesture.classList.add("good");
     }
 
-    function updateUnlocked(pose) {
-      if (!pose) return;
-      if (!unlockedPoses.has(pose)) {
-        unlockedPoses.add(pose);
-        cards.forEach(c => {
-          if (c.dataset.pose === pose) {
-            c.classList.remove("locked");
-            c.classList.add("unlocked");
-          }
-        });
+    function updateMainImage(pose) {
+      if (!pose) {
+        // Show next locked pose
+        const nextPose = poses[currentPoseIndex];
+        if (nextPose) {
+          mainImage.src = nextPose.image;
+          overlayIcon.textContent = nextPose.icon;
+          overlayHint.textContent = nextPose.hint;
+          mainImageContainer.classList.add("locked");
+          mainOverlay.classList.remove("hidden");
+          imageTitle.classList.remove("visible");
+        }
+        return;
+      }
+
+      const poseData = poses.find(p => p.id === pose);
+      if (!poseData) return;
+
+      // If this is a new unlock, play sound and update
+      if (lastUnlockedPose !== pose) {
+        lastUnlockedPose = pose;
+        playSound("success");
+        mainImage.src = poseData.image;
+        mainImageContainer.classList.remove("locked");
+        mainOverlay.classList.add("hidden");
+        imageTitle.textContent = poseData.title;
+        imageTitle.classList.add("visible");
+        
+        // Move to next pose
+        currentPoseIndex = (currentPoseIndex + 1) % poses.length;
       }
     }
 
     function highlightPose(pose) {
-      cards.forEach(c => c.classList.toggle("active", c.dataset.pose === pose));
       if (!pose) {
         poseLabel.classList.remove("visible", "active");
         poseLabelText.textContent = "Looking for pose…";
         return;
       }
-      const map = {
-        peace: "Peace sign detected",
-        scared: "Scared (mouth wide)",
-        tongue: "Tongue-out pose",
-        big_eyes: "Big eyes detected",
-      };
-      poseLabelText.textContent = map[pose] || pose;
-      poseLabel.classList.add("visible", "active");
+      const poseData = poses.find(p => p.id === pose);
+      if (poseData) {
+        poseLabelText.textContent = poseData.title + " detected!";
+        poseLabel.classList.add("visible", "active");
+      }
     }
 
-    function decidePose({ mar, ear, gesture }) {
+    function decidePose({ mar, ear, gesture, tongueOut }) {
       const isPeace = gesture && ["victory", "peace"].some(g => gesture.toLowerCase().includes(g));
       if (isPeace) return "peace";
       if (mar != null && mar > MAR_SCARED) return "scared";
-      if (mar != null && ear != null && mar >= MAR_TONGUE_MIN && mar <= MAR_TONGUE_MAX && ear < EAR_EYES_CLOSED) return "tongue";
+      // Tongue detection: require actual tongue out, not just closed eyes
+      if (tongueOut && mar != null && mar >= MAR_TONGUE_MIN && mar <= MAR_TONGUE_MAX) return "tongue";
       if (ear != null && ear > EAR_BIG_EYES) return "big_eyes";
       return null;
+    }
+
+    function getNextHint() {
+      const nextPose = poses[currentPoseIndex];
+      if (nextPose) {
+        return nextPose.notification;
+      }
+      return "Try a pose!";
     }
 
     async function init() {
       try {
         setStatus("<strong>Starting camera…</strong>");
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 960 }, height: { ideal: 720 } }, audio: false });
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: { ideal: 960 }, 
+            height: { ideal: 720 },
+            facingMode: "user"
+          }, 
+          audio: false 
+        });
         video.srcObject = stream;
         await video.play();
 
@@ -481,8 +695,14 @@
           numHands: 2,
         });
 
+        // Initialize with first pose
+        updateMainImage(null);
+
         setStatus("<strong>Live</strong> • mimic a pose or press Space to pause", true);
         startLoop();
+        
+        // Show initial hint
+        setTimeout(() => showNotification(getNextHint()), 2000);
       } catch (err) {
         console.error(err);
         errorBox.style.display = "flex";
@@ -492,6 +712,8 @@
 
     function startLoop() {
       const utils = new DrawingUtils(ctx);
+      let noPoseCounter = 0;
+      
       const loop = async () => {
         if (!running) { rafId = requestAnimationFrame(loop); return; }
         if (video.currentTime === lastVideoTime) { rafId = requestAnimationFrame(loop); return; }
@@ -500,18 +722,19 @@
         const ts = performance.now();
         ctx.clearRect(0, 0, overlay.width, overlay.height);
 
-        let mar = null, ear = null, gesture = null;
+        let mar = null, ear = null, gesture = null, tongueOut = false;
 
         const face = faceLandmarker?.detectForVideo(video, ts);
         if (face?.faceLandmarks?.length) {
           const lms = face.faceLandmarks[0];
-          utils.drawConnectors(lms, FaceLandmarker.FACE_LANDMARKS_TESSELATION, { color: "#6366f1", lineWidth: 0.6 });
-          utils.drawConnectors(lms, FaceLandmarker.FACE_LANDMARKS_FACE_OVAL, { color: "#22d3ee", lineWidth: 1.4 });
-          utils.drawConnectors(lms, FaceLandmarker.FACE_LANDMARKS_LIPS, { color: "#fb7185", lineWidth: 1.4 });
-          utils.drawConnectors(lms, FaceLandmarker.FACE_LANDMARKS_LEFT_EYE, { color: "#a855f7", lineWidth: 1.4 });
-          utils.drawConnectors(lms, FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE, { color: "#a855f7", lineWidth: 1.4 });
+          utils.drawConnectors(lms, FaceLandmarker.FACE_LANDMARKS_TESSELATION, { color: "#ff6b9d", lineWidth: 1 });
+          utils.drawConnectors(lms, FaceLandmarker.FACE_LANDMARKS_FACE_OVAL, { color: "#c77dff", lineWidth: 2 });
+          utils.drawConnectors(lms, FaceLandmarker.FACE_LANDMARKS_LIPS, { color: "#ff8fab", lineWidth: 2 });
+          utils.drawConnectors(lms, FaceLandmarker.FACE_LANDMARKS_LEFT_EYE, { color: "#ffb3d9", lineWidth: 2 });
+          utils.drawConnectors(lms, FaceLandmarker.FACE_LANDMARKS_RIGHT_EYE, { color: "#ffb3d9", lineWidth: 2 });
           mar = computeMAR(lms);
           ear = computeEAR(lms);
+          tongueOut = detectTongue(lms);
         }
 
         const hands = gestureRecognizer?.recognizeForVideo(video, ts);
@@ -520,8 +743,8 @@
           gesture = top?.categoryName || null;
           if (hands.landmarks) {
             hands.landmarks.forEach(lm => {
-              utils.drawConnectors(lm, GestureRecognizer.HAND_CONNECTIONS, { color: "#fb923c", lineWidth: 3 });
-              utils.drawLandmarks(lm, { color: "#fed7aa", lineWidth: 1, radius: 2 });
+              utils.drawConnectors(lm, GestureRecognizer.HAND_CONNECTIONS, { color: "#ffd93d", lineWidth: 3 });
+              utils.drawLandmarks(lm, { color: "#ffe066", lineWidth: 1, radius: 3 });
             });
           }
         }
@@ -530,9 +753,22 @@
         updateMetric(metricEAR, ear, { badRange: [0, 0.18] });
         updateGesture(gesture ? (gesture === "Victory" ? "Peace/Victory" : gesture) : "None");
 
-        const pose = decidePose({ mar, ear, gesture });
-        updateUnlocked(pose);
-        highlightPose(pose);
+        const pose = decidePose({ mar, ear, gesture, tongueOut });
+        
+        if (pose) {
+          noPoseCounter = 0;
+          updateMainImage(pose);
+          highlightPose(pose);
+        } else {
+          noPoseCounter++;
+          if (noPoseCounter > 60) { // After 1 second of no pose (assuming ~60fps)
+            highlightPose(null);
+            // Show hint notification occasionally
+            if (Math.random() < 0.01) { // 1% chance per frame
+              showNotification(getNextHint());
+            }
+          }
+        }
 
         rafId = requestAnimationFrame(loop);
       };
@@ -544,7 +780,10 @@
         e.preventDefault();
         running = !running;
         if (running) setStatus("<strong>Live</strong> • mimic a pose or press Space to pause", true);
-        else { setStatus("<strong>Paused</strong> • press Space to resume", false); highlightPose(null); }
+        else { 
+          setStatus("<strong>Paused</strong> • press Space to resume", false); 
+          highlightPose(null); 
+        }
       }
     });
 
