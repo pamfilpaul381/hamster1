@@ -102,6 +102,12 @@
       width: 100%;
       aspect-ratio: 4/3;
       object-fit: cover;
+      transition: opacity 0.25s ease, transform 0.25s ease, filter 0.25s ease;
+    }
+    .card.locked img {
+      opacity: 0;
+      transform: scale(1.02);
+      filter: blur(6px) brightness(0.3);
     }
     .card .meta {
       padding: 8px 10px;
@@ -119,10 +125,57 @@
       font-size: 0.7rem;
       color: var(--muted);
     }
+    .check {
+      font-size: 0.9rem;
+      color: #4ade80;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
     .card.active {
       border-color: var(--accent);
       box-shadow: 0 10px 30px rgba(34,197,94,0.25);
       transform: translateY(-2px);
+    }
+    .card.unlocked .check {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .card-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px;
+      background: radial-gradient(circle at top, rgba(15,23,42,0.95), rgba(15,23,42,0.98));
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.78rem;
+      transition: opacity 0.25s ease;
+      z-index: 2;
+    }
+    .card-overlay .icon {
+      font-size: 1.6rem;
+    }
+    .card-overlay .lock-state {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.5);
+      padding: 2px 8px;
+      margin-top: 2px;
+    }
+    .card.unlocked .card-overlay {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .card.unlocked .check {
+      opacity: 1;
+      transform: translateY(0);
     }
     .metrics {
       margin-top: 12px;
@@ -149,6 +202,7 @@
       border: 1px solid rgba(148,163,184,0.35);
       aspect-ratio: 4 / 3;
       background: #000;
+      transform: scaleX(-1); /* mirror video + overlay for natural feel */
     }
     video, canvas {
       position: absolute;
@@ -216,21 +270,57 @@
       <section class="panel">
         <h3>Reference</h3>
         <div class="ref-grid">
-          <article class="card" data-pose="peace">
+          <article class="card locked" data-pose="peace">
+            <div class="card-overlay">
+              <div class="icon">✌️</div>
+              <div class="hint">Show a clear peace / victory sign with your hand to reveal this hamster.</div>
+              <div class="lock-state">Locked</div>
+            </div>
             <img src="hamster_peace.jpg" alt="Hamster peace sign">
-            <div class="meta"><span>Peace Sign</span><span class="tag">Gesture</span></div>
+            <div class="meta">
+              <span>Peace Sign</span>
+              <span class="tag">Gesture</span>
+              <span class="check">✔</span>
+            </div>
           </article>
-          <article class="card" data-pose="scared">
+          <article class="card locked" data-pose="scared">
+            <div class="card-overlay">
+              <div class="icon">😱</div>
+              <div class="hint">Open your mouth very wide to unlock the scared hamster.</div>
+              <div class="lock-state">Locked</div>
+            </div>
             <img src="hamster_scared.jpg" alt="Hamster scared">
-            <div class="meta"><span>Scared</span><span class="tag">Mouth</span></div>
+            <div class="meta">
+              <span>Scared</span>
+              <span class="tag">Mouth</span>
+              <span class="check">✔</span>
+            </div>
           </article>
-          <article class="card" data-pose="tongue">
+          <article class="card locked" data-pose="tongue">
+            <div class="card-overlay">
+              <div class="icon">😛</div>
+              <div class="hint">Open your mouth a bit and close your eyes to reveal the tongue-out cat.</div>
+              <div class="lock-state">Locked</div>
+            </div>
             <img src="cat_tongue.jpg" alt="Cat tongue out">
-            <div class="meta"><span>Tongue Out</span><span class="tag">Mouth + Eyes</span></div>
+            <div class="meta">
+              <span>Tongue Out</span>
+              <span class="tag">Mouth + Eyes</span>
+              <span class="check">✔</span>
+            </div>
           </article>
-          <article class="card" data-pose="big_eyes">
+          <article class="card locked" data-pose="big_eyes">
+            <div class="card-overlay">
+              <div class="icon">👀</div>
+              <div class="hint">Open your eyes extra wide (surprised look) to reveal the big-eyes cat.</div>
+              <div class="lock-state">Locked</div>
+            </div>
             <img src="cat_eyes.jpg" alt="Cat big eyes">
-            <div class="meta"><span>Big Eyes</span><span class="tag">Eyes</span></div>
+            <div class="meta">
+              <span>Big Eyes</span>
+              <span class="tag">Eyes</span>
+              <span class="check">✔</span>
+            </div>
           </article>
         </div>
         <div class="metrics">
@@ -273,6 +363,7 @@
     let running = true;
     let rafId = null;
     let lastVideoTime = -1;
+    const unlockedPoses = new Set();
 
     const MAR_SCARED = 0.65;
     const MAR_TONGUE_MIN = 0.32;
@@ -325,6 +416,19 @@
       v.textContent = text || "–";
       metricGesture.classList.remove("good", "bad");
       if (text === "Peace/Victory") metricGesture.classList.add("good");
+    }
+
+    function updateUnlocked(pose) {
+      if (!pose) return;
+      if (!unlockedPoses.has(pose)) {
+        unlockedPoses.add(pose);
+        cards.forEach(c => {
+          if (c.dataset.pose === pose) {
+            c.classList.remove("locked");
+            c.classList.add("unlocked");
+          }
+        });
+      }
     }
 
     function highlightPose(pose) {
@@ -427,6 +531,7 @@
         updateGesture(gesture ? (gesture === "Victory" ? "Peace/Victory" : gesture) : "None");
 
         const pose = decidePose({ mar, ear, gesture });
+        updateUnlocked(pose);
         highlightPose(pose);
 
         rafId = requestAnimationFrame(loop);
